@@ -78,8 +78,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'satt_bsatt_exchange',
-        'USER': 'postgres',
-        'PASSWORD': 'admin',
+        'USER': 'satt_bsatt_exchange',
+        'PASSWORD': 'satt_bsatt_exchange',
         'HOST': '127.0.0.1',
         'PORT': '5432',
     }
