@@ -11,8 +11,8 @@ class EthPaymentMonitor:
     queue = NETWORKS[network_types[0]]['queue']
 
     currency = 'ETH'
-    tokenc_contract=['0x0B134804eF85da3bD83F35046d27C4Af42Ef296D']
-    swap_contract=['0x1d70d8bee5d45138d5F0B449Cb1788Eb70CBC9A1'.lower()]
+    tokenc_contract=['0xdf49c9f599a0a9049d97cff34d0c30e468987389']
+    swap_contract=['0xA186415565BF4d0E0A4B61DaE4ec44DF37EF790c'.lower()]
     tokens = ERC20_TOKENS
 
     @classmethod
@@ -61,7 +61,7 @@ class EthPaymentMonitor:
                 'address': tx.inputs[0],
                 'transactionHash': tx.tx_hash,
                 'amount': amount,
-                'memo': tx.outputs[0].raw_output_script[-64:],
+                'memo': tx.outputs[0].raw_output_script[-128:-44],
                 'success': success,
             }
             
