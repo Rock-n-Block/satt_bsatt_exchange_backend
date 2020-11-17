@@ -44,7 +44,7 @@ class BinNetwork(WrapperNetwork):
     
     def get_block(self,) -> WrapperBlock:
         client_transactions=client.get_transactions(address='bnb15hv3a52t2jfr0mwuz57nl6p6gt9hpa0gwhkanq')
-        with open(os.path.join('../', self.base_dir, 'BINANCE_MAINNET'), 'r') as file:
+        with open(os.path.join(os.getcwd(), self.base_dir, 'BINANCE_MAINNET'), 'r') as file:
             max_block = file.read()
         if len(max_block)==0:
             max_block=0
@@ -84,6 +84,6 @@ class BinNetwork(WrapperNetwork):
             processed.append(commited[len(processed)])
         block = WrapperBlock('','','', transactions)
                 
-        with open(os.path.join('../', self.base_dir, 'BINANCE_MAINNET'), 'w') as file:
+        with open(os.path.join(os.getcwd(), self.base_dir, 'BINANCE_MAINNET'), 'w') as file:
             file.write(str(max_block))
         return block
