@@ -85,8 +85,18 @@ class Receiver(threading.Thread):
 
         is_send_ok, send_data = send_bsatt(bsatt_address, amount)
         if not is_send_ok:
-            print('BSATT SENDING FAIL: ', send_data, flush=True)
-            raise TransferException(send_data)
+            print('BSATT SENDING FAIL, TRYING AGAIN', flush=True)
+            is_send_ok, send_data = send_bsatt(bsatt_address, amount)
+            if not is_send_ok:
+                print('BSATT SENDING FAIL: ', send_data, flush=True)
+                is_burn_ok, burn_data = burn_bsatt(amount)
+                if not is_burn_ok:
+                    print('BSATT BURNING FAIL: ', burn_data)
+                    raise TransferException(burn_data)
+                print('BSATT BURNING DONE, HASH: ', burn_data, flush=True)
+                raise TransferException(send_data)
+
+        
         print('BSATT SENDING DONE, HASH: ', send_data, flush=True)
 
         SATTtoBSATT(
