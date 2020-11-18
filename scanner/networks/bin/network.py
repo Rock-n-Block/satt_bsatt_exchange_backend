@@ -43,18 +43,23 @@ class BinNetwork(WrapperNetwork):
         pass
     
     def get_block(self,) -> WrapperBlock:
+        print('BINANCE_MAINNET: scanning')
         client_transactions=client.get_transactions(address='bnb15hv3a52t2jfr0mwuz57nl6p6gt9hpa0gwhkanq')
-        with open(os.path.join(os.getcwd(), self.base_dir, 'BINANCE_MAINNET'), 'r') as file:
+        with open(os.path.join('../', self.base_dir, 'BINANCE_MAINNET'), 'r') as file:
             max_block = file.read()
         if len(max_block)==0:
             max_block=0
         max_block=int(max_block)
-        reverse_transactions=client_transactions['tx'][:len(client_transactions)+2-len(commited)]
-        for t in reverse_transactions[::-1]:
-            if t['code']==0:
+        new_transactions=[]
+        for c_t in client_transactions['tx']:
+            if c_t['blockHeight']<=max_block:
+                break
+            new_transactions.append(c_t)
+        for t in new_transactions[::-1]:
+            if t['code']==0 and t['txType']=='TRANSFER':
                 stop=False
                 for tx in commited:
-                    if t['txHash']==tx['txHash'] or int(t['blockHeight'])<=int(max_block):
+                    if t['txHash']==tx['txHash']:
                         stop=True
                 if stop==True:
                     continue
@@ -79,11 +84,10 @@ class BinNetwork(WrapperNetwork):
 
             if int(commited[len(processed)]['blockHeight'])>max_block:
                 transactions.append(transaction)
-            if int(commited[len(processed)]['blockHeight'])>max_block:
                 max_block=int(commited[len(processed)]['blockHeight'])
             processed.append(commited[len(processed)])
         block = WrapperBlock('','','', transactions)
                 
-        with open(os.path.join(os.getcwd(), self.base_dir, 'BINANCE_MAINNET'), 'w') as file:
+        with open(os.path.join('../', self.base_dir, 'BINANCE_MAINNET'), 'w') as file:
             file.write(str(max_block))
         return block
