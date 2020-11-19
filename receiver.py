@@ -6,13 +6,14 @@ import traceback
 import json
 import django
 import binascii
+import time
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'satt_bsatt_exchange_backend.settings')
 django.setup()
 
-from satt_bsatt_exchange_backend.settings import NETWORK_SETTINGS, DECIMALS_DIFFERENCE
+from satt_bsatt_exchange_backend.settings import NETWORK_SETTINGS, DECIMALS_DIFFERENCE, SATT_BSATT_RATE
 from exchange.models import SATTtoBSATT, BSATTtoSATT
-from exchange.api import send_satt, mint_bsatt, send_bsatt, burn_bsatt, TransferException
+from exchange.api import send_satt, mint_bsatt, send_bsatt, burn_bsatt
 
 
 class Receiver(threading.Thread):
@@ -48,74 +49,73 @@ class Receiver(threading.Thread):
         channel.start_consuming()
 
     def exchange_bsatt(self, message):
-        print('BSATT EXCHANGE MESSAGE RECEIVED', flush=True)
+        bsatt_tx_hash = message.get('transactionHash')
+        saved_transactions = BSATTtoSATT.objects.filter(bsatt_transaction_hash=bsatt_tx_hash)
+        if not saved_transactions.count() > 0:
+            tx = BSATTtoSATT(
+                bsatt_address=message.get('address'),
+                bsatt_transaction_hash=bsatt_tx_hash,
+                bsatt_amount=message.get('amount'),
+                satt_address=message.get('memo'),
+                satt_amount=message.get('amount') * DECIMALS_DIFFERENCE * SATT_BSATT_RATE
+            )
+            try:
+                tx.satt_transaction_hash = send_satt(tx.satt_address, tx.satt_amount)
+                is_burn_ok, burn_data = burn_bsatt(tx.bsatt_amount)
+                if is_burn_ok:
+                    tx.bsatt_burn_hash = burn_data
+                    tx.status = 'SUCCESS'
+                else:
+                    tx.bsatt_burn_error = burn_data
+                    tx.status = 'FAIL'
 
-        satt_address = message.get('memo')
-        amount = message.get('amount')
+            except Exception as e:
+                tx.satt_transaction_error = repr(e)
+                tx.status = 'FAIL'
 
-        transaction_hash = send_satt(satt_address, amount * DECIMALS_DIFFERENCE)
-        print('SATT SENDING DONE, HASH: ', transaction_hash, flush=True)
+            print('BSATT to SATT TRANSFER INFO:\n', tx, flush=True)
+            tx.save()
+        else:
+            print('RECEIVED TRANSACTION EXISTS IN DATABASE:\n', saved_transactions[0], flush=True)
 
-        is_burn_ok, burn_data = burn_bsatt(amount)
-        if not is_burn_ok:
-            print('BSATT BURNING FAIL: ', burn_data)
-            raise TransferException(burn_data)
-        print('BSATT BURNING DONE, HASH: ', burn_data, flush=True)
-
-        BSATTtoSATT(
-            bsatt_address = message.get('address', ''),
-            bsatt_transaction_hash=message.get('transactionHash', ''),
-            bsatt_burn_hash = burn_data,
-            satt_address = satt_address,
-            satt_transaction_hash = transaction_hash,
-            amount = amount,
-        ).save()
-
+   
     def exchange_satt(self, message):
-        print('SATT EXCHANGE MESSAGE RECEIVED', flush=True)
+        satt_tx_hash = message.get('transactionHash')
+        saved_transactions = SATTtoBSATT.objects.filter(satt_transaction_hash=satt_tx_hash)
+        if not saved_transactions.count() > 0:
+            tx = SATTtoBSATT(
+                satt_address=message.get('address'),
+                satt_transaction_hash=satt_tx_hash,
+                satt_amount=message.get('amount'),
+                bsatt_address=binascii.unhexlify(message.get('memo')).decode('utf-8'),
+                bsatt_amount= message.get('amount') // (DECIMALS_DIFFERENCE * SATT_BSATT_RATE)
+            )
 
-        bsatt_address = binascii.unhexlify(message.get('memo')).decode('utf-8')
-        amount = message.get('amount') // DECIMALS_DIFFERENCE
-
-        is_mint_ok, mint_data = mint_bsatt(amount)
-        if not is_mint_ok:
-            print('BSATT MINTING FAIL: ', mint_data, flush=True)
-            raise TransferException(mint_data)
-        print('BSATT MINTING DONE, HASH: ', mint_data, flush=True)
-
-        is_send_ok, send_data = send_bsatt(bsatt_address, amount)
-        if not is_send_ok:
-            print('BSATT SENDING FAIL, TRYING AGAIN', flush=True)
-            is_send_ok, send_data = send_bsatt(bsatt_address, amount)
-            if not is_send_ok:
-                print('BSATT SENDING FAIL: ', send_data, flush=True)
-                is_burn_ok, burn_data = burn_bsatt(amount)
-                if not is_burn_ok:
-                    print('BSATT BURNING FAIL: ', burn_data)
-                    raise TransferException(burn_data)
-                print('BSATT BURNING DONE, HASH: ', burn_data, flush=True)
-                raise TransferException(send_data)
-
-        
-        print('BSATT SENDING DONE, HASH: ', send_data, flush=True)
-
-        SATTtoBSATT(
-            satt_address=message.get('address'),
-            satt_transaction_hash=message.get('transactionHash', ''),
-            bsatt_address=bsatt_address,
-            bsatt_mint_hash=mint_data,
-            bsatt_send_hash=send_data,
-            amount=amount,
-        ).save()
+            is_mint_ok, mint_data = mint_bsatt(tx.bsatt_amount)
+            if is_mint_ok:
+                tx.bsatt_mint_hash = mint_data
+                time.sleep(10)
+                is_send_ok, send_data = send_bsatt(tx.bsatt_address, tx.bsatt_amount)
+                if is_send_ok:
+                    tx.bsatt_send_hash = send_data
+                    tx.status = 'SUCCESS'
+                else:
+                    tx.bsatt_send_error = send_data
+                    tx.status = 'FAIL'
+            else:
+                tx.bsatt_mint_error = mint_data
+                tx.status = 'FAIL'
+            print('SATT to BSATT TRANSFER INFO:\n', tx, flush=True)
+            tx.save()
+        else:
+            print('RECEIVED TRANSACTION EXISTS IN DATABASE:\n', saved_transactions[0], flush=True)
 
     def callback(self, ch, method, properties, body):
         try:
             message = json.loads(body.decode())
-            print('RECEIVED ', message)
+            print(f'{self.queue_name.upper()} QUEUE RECEIVED ', message)
             if message.get('success', '') == 'SUCCESS':
                 getattr(self, self.queue_name.replace('-', '_'), self.unknown_handler)(message)
-        except TransferException:
-            pass
         except Exception:
             print('\n'.join(traceback.format_exception(*sys.exc_info())),
                   flush=True)

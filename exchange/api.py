@@ -8,14 +8,6 @@ w3 = Web3(HTTPProvider(NETWORK_SETTINGS['SATT']['endpoint']))
 swap_contract = w3.eth.contract(address=SWAP_CONTRACT_ADDRESS, abi=SWAP_CONTRACT_ABI)
 
 
-class TransferException(Exception):
-    def __init__(self, text):
-        self.value = text
-
-    def __str__(self):
-        return self.value
-
-
 def send_satt(satt_address, amount):
     tx_params = {
         'nonce': w3.eth.getTransactionCount(NETWORK_SETTINGS['SATT']['address']),  # 'pending'?
@@ -38,8 +30,6 @@ def execute_bnbcli_command(command_list):
         return_data = message['TxHash']
     else:
         return_data = stderr.decode()
-    # return_data = re.findall(r'tx hash: (\w+)', stdout.decode())[0] if is_ok else stderr.decode()
-    # return_data = message['TxHash'] if is_ok else message.get('message', stderr.decode())
     return is_ok, return_data
 
 

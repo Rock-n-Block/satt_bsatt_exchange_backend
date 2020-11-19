@@ -132,6 +132,8 @@ GAS_LIMIT = 500000
 
 DECIMALS_DIFFERENCE = 10000000000
 
+SATT_BSATT_RATE = 12270
+
 try:
     from satt_bsatt_exchange_backend.settings_local import *
 except ImportError:
