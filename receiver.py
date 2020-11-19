@@ -73,10 +73,10 @@ class Receiver(threading.Thread):
                 tx.satt_transaction_error = repr(e)
                 tx.status = 'FAIL'
 
-            print('BSATT to SATT TRANSFER INFO:\n', tx, flush=True)
+            print('BSATT to SATT TRANSFER INFO:\n' + tx, flush=True)
             tx.save()
         else:
-            print('RECEIVED TRANSACTION EXISTS IN DATABASE:\n', saved_transactions[0], flush=True)
+            print('RECEIVED TRANSACTION EXISTS IN DATABASE:\n' + saved_transactions[0], flush=True)
 
    
     def exchange_satt(self, message):
@@ -105,15 +105,15 @@ class Receiver(threading.Thread):
             else:
                 tx.bsatt_mint_error = mint_data
                 tx.status = 'FAIL'
-            print('SATT to BSATT TRANSFER INFO:\n', tx, flush=True)
+            print('SATT to BSATT TRANSFER INFO:\n' + tx, flush=True)
             tx.save()
         else:
-            print('RECEIVED TRANSACTION EXISTS IN DATABASE:\n', saved_transactions[0], flush=True)
+            print('RECEIVED TRANSACTION EXISTS IN DATABASE:\n' + saved_transactions[0], flush=True)
 
     def callback(self, ch, method, properties, body):
         try:
             message = json.loads(body.decode())
-            print(f'{self.queue_name.upper()} QUEUE RECEIVED ', message)
+            print(f'\n\n{self.queue_name.upper()} QUEUE RECEIVED ', message)
             if message.get('success', '') == 'SUCCESS':
                 getattr(self, self.queue_name.replace('-', '_'), self.unknown_handler)(message)
         except Exception:
