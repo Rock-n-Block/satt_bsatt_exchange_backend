@@ -42,7 +42,7 @@ class BinNetwork(WrapperNetwork):
     def get_last_block(self):
         pass
     
-    def get_block(self,) -> WrapperBlock:
+    def get_block(self, s_time) -> WrapperBlock:
         print('BINANCE_MAINNET: scanning', flush=True)
         client_transactions=client.get_transactions(address='bnb15hv3a52t2jfr0mwuz57nl6p6gt9hpa0gwhkanq', tx_asset='BSATT-9F8M', start_time=s_time, limit=1000)
         tx_count=client_transactions['total']
