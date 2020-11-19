@@ -54,7 +54,7 @@ class BinNetwork(WrapperNetwork):
             tx_count=client_transactions_append['total']
             client_transactions+=client_transactions_append['tx']
             time.sleep(1)
-        with open(os.path.join('../', self.base_dir, 'BINANCE_MAINNET'), 'r') as file:
+        with open(os.path.join(self.base_dir, 'BINANCE_MAINNET'), 'r') as file:
             max_block = file.read()
         if len(max_block)==0:
             max_block=0
