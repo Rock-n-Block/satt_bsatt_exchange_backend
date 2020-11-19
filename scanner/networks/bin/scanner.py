@@ -10,12 +10,14 @@ from scanner.services.scanner_polling import ScannerPolling
 class BinScanner(ScannerPolling):
 
     def polling(self):
+        block=self.network.get_block(int(time.time()*1000-604800000))
+        self.process_block(block)
+        time.sleep(1)
         while True:
-            block=self.network.get_block()
+            block=self.network.get_block('')
             self.process_block(block)
-            time.sleep(10)
-            block=WrapperBlock(0,0,0,[])
-            print('block: {}'.format(block))
+            time.sleep(1)
+            
     
     def process_block(self, block: WrapperBlock):
         address_transactions = collections.defaultdict(list)

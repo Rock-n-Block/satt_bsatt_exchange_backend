@@ -44,50 +44,49 @@ class BinNetwork(WrapperNetwork):
     
     def get_block(self,) -> WrapperBlock:
         print('BINANCE_MAINNET: scanning', flush=True)
-        client_transactions=client.get_transactions(address='bnb15hv3a52t2jfr0mwuz57nl6p6gt9hpa0gwhkanq')
+        client_transactions=client.get_transactions(address='bnb15hv3a52t2jfr0mwuz57nl6p6gt9hpa0gwhkanq', tx_asset='BSATT-9F8M', start_time=s_time, limit=1000)
+        tx_count=client_transactions['total']
+        client_transactions=client_transactions['tx']
+        offset=0
+        while tx_count>len(client_transactions):
+            offset+=1000
+            client_transactions_append=client.get_transactions(address='bnb15hv3a52t2jfr0mwuz57nl6p6gt9hpa0gwhkanq', tx_asset='BSATT-9F8M', offset=offset, start_time=s_time, limit=1000)
+            tx_count=client_transactions_append['total']
+            client_transactions+=client_transactions_append['tx']
+            time.sleep(1)
         with open(os.path.join('../', self.base_dir, 'BINANCE_MAINNET'), 'r') as file:
             max_block = file.read()
         if len(max_block)==0:
             max_block=0
         max_block=int(max_block)
         new_transactions=[]
-        for c_t in client_transactions['tx']:
+        for c_t in client_transactions:
             if c_t['blockHeight']<=max_block:
                 break
             new_transactions.append(c_t)
+        transactions=[]
         for t in new_transactions[::-1]:
             if t['code']==0 and t['txType']=='TRANSFER':
-                stop=False
-                for tx in commited:
-                    if t['txHash']==tx['txHash']:
-                        stop=True
-                if stop==True:
-                    continue
-                commited.append(t)
-        transactions=[]
-        while len(commited)>len(processed):
-            
-            output = WrapperOutput(
-                    commited[len(processed)]['txHash'],
-                    commited[len(processed)]['txAsset'],
-                    commited[len(processed)]['toAddr'],
-                    commited[len(processed)]['value'],
-                    commited[len(processed)]['memo']
-            )
-            transaction = WrapperTransaction(
-                        commited[len(processed)]['txHash'],
-                        commited[len(processed)]['fromAddr'],
+                output = WrapperOutput(
+                    t['txHash'],
+                    t['txAsset'],
+                    t['toAddr'],
+                    t['value'],
+                    t['memo']
+                )
+                transaction = WrapperTransaction(
+                        t['txHash'],
+                        t['fromAddr'],
                         [output],
                         False,
                         ""
-            )
+                )
 
-            if int(commited[len(processed)]['blockHeight'])>max_block:
                 transactions.append(transaction)
-                max_block=int(commited[len(processed)]['blockHeight'])
-            processed.append(commited[len(processed)])
+                if int(t['blockHeight'])>max_block:
+                    max_block=int(t['blockHeight'])
         block = WrapperBlock('','','', transactions)
                 
-        with open(os.path.join('../', self.base_dir, 'BINANCE_MAINNET'), 'w') as file:
+        with open(os.path.join(self.base_dir, 'BINANCE_MAINNET'), 'w') as file:
             file.write(str(max_block))
         return block
