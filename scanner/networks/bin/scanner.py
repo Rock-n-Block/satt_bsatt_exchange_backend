@@ -12,11 +12,11 @@ class BinScanner(ScannerPolling):
     def polling(self):
         block=self.network.get_block(int(time.time()*1000-604800000))
         self.process_block(block)
-        time.sleep(1)
+        time.sleep(10)
         while True:
             block=self.network.get_block('')
             self.process_block(block)
-            time.sleep(1)
+            time.sleep(10)
             
     
     def process_block(self, block: WrapperBlock):
