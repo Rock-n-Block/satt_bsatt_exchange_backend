@@ -57,6 +57,7 @@ class BinNetwork(WrapperNetwork):
             time.sleep(1)
             i+=1
             if i>100:
+                print('got out of the loop')
                 break
         with open(os.path.join(self.base_dir, 'BINANCE_MAINNET'), 'r') as file:
             max_block = file.read()
