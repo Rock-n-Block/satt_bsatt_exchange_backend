@@ -17,6 +17,7 @@ class BinScanner(ScannerPolling):
             block=self.network.get_block('')
             self.process_block(block)
             time.sleep(10)
+        print('got out of the main loop')
             
     
     def process_block(self, block: WrapperBlock):
