@@ -48,12 +48,16 @@ class BinNetwork(WrapperNetwork):
         tx_count=client_transactions['total']
         client_transactions=client_transactions['tx']
         offset=0
+        i=0
         while tx_count>len(client_transactions):
             offset+=1000
             client_transactions_append=client.get_transactions(address='bnb15hv3a52t2jfr0mwuz57nl6p6gt9hpa0gwhkanq', tx_asset='BSATT-9F8M', offset=offset, start_time=s_time, limit=1000)
             tx_count=client_transactions_append['total']
             client_transactions+=client_transactions_append['tx']
             time.sleep(1)
+            i+=1
+            if i>100:
+                break
         with open(os.path.join(self.base_dir, 'BINANCE_MAINNET'), 'r') as file:
             max_block = file.read()
         if len(max_block)==0:
