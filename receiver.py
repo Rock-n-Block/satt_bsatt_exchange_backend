@@ -12,6 +12,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'satt_bsatt_exchange_backend.set
 django.setup()
 
 from satt_bsatt_exchange_backend.settings import NETWORK_SETTINGS, DECIMALS_DIFFERENCE, SATT_BSATT_RATE
+from satt_bsatt_exchange_backend.binance_settings import BSATT_OWNER_ADDRESS
 from exchange.models import SATTtoBSATT, BSATTtoSATT
 from exchange.api import send_satt, mint_bsatt, send_bsatt, burn_bsatt
 
@@ -52,13 +53,19 @@ class Receiver(threading.Thread):
         bsatt_tx_hash = message.get('transactionHash')
         saved_transactions = BSATTtoSATT.objects.filter(bsatt_transaction_hash=bsatt_tx_hash)
         if not saved_transactions.count() > 0:
+            memo = message.get('memo')
+            if not memo:
+                print('ERROR: MEMO CANNOT BE EMPTY, TRANSACTION DECLINED', flush=True)
+                return
+
             tx = BSATTtoSATT(
                 bsatt_address=message.get('address'),
                 bsatt_transaction_hash=bsatt_tx_hash,
                 bsatt_amount=message.get('amount'),
-                satt_address=message.get('memo'),
+                satt_address=memo,
                 satt_amount=message.get('amount') * DECIMALS_DIFFERENCE * SATT_BSATT_RATE
             )
+
             try:
                 tx.satt_transaction_hash = send_satt(tx.satt_address, tx.satt_amount)
                 is_burn_ok, burn_data = burn_bsatt(tx.bsatt_amount)
@@ -68,7 +75,6 @@ class Receiver(threading.Thread):
                 else:
                     tx.bsatt_burn_error = burn_data
                     tx.status = 'FAIL'
-
             except Exception as e:
                 tx.satt_transaction_error = repr(e)
                 tx.status = 'FAIL'
@@ -78,16 +84,28 @@ class Receiver(threading.Thread):
         else:
             print('RECEIVED TRANSACTION EXISTS IN DATABASE:\n' + str(saved_transactions[0]), flush=True)
 
-   
     def exchange_satt(self, message):
         satt_tx_hash = message.get('transactionHash')
         saved_transactions = SATTtoBSATT.objects.filter(satt_transaction_hash=satt_tx_hash)
         if not saved_transactions.count() > 0:
+            memo = message.get('memo')
+            if not memo:
+                print('ERROR: MEMO CANNOT BE EMPTY, TRANSACTION DECLINED', flush=True)
+                return
+            try:
+                bsatt_address = binascii.unhexlify(memo).decode('utf-8')
+                if bsatt_address == BSATT_OWNER_ADDRESS:
+                    print(f'BSATT ADDRESS IS TOKEN OWNER ADDRESS, TRANSACTION DECLINED', flush=True)
+                    return
+            except Exception as e:
+                print(f'ERROR WHILE DECODING MEMO: {repr(e)}, TRANSACTION DECLINED', flush=True)
+                return
+
             tx = SATTtoBSATT(
                 satt_address=message.get('address'),
                 satt_transaction_hash=satt_tx_hash,
                 satt_amount=message.get('amount'),
-                bsatt_address=binascii.unhexlify(message.get('memo')).decode('utf-8'),
+                bsatt_address=bsatt_address,
                 bsatt_amount= message.get('amount') // (DECIMALS_DIFFERENCE * SATT_BSATT_RATE)
             )
 
