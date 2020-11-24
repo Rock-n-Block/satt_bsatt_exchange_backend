@@ -21,7 +21,7 @@ from binance_chain.environment import BinanceEnvironment
 from binance_chain.node_rpc.http import HttpRpcClient
 
 
-client = HttpApiClient()
+client = HttpApiClient(request_params={"verify": False, "timeout": 20})
 httpapiclient = HttpApiClient()
 peers = httpapiclient.get_node_peers()
 listen_addr = peers[0]['listen_addr']
