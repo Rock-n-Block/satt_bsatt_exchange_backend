@@ -1,10 +1,10 @@
 import json
 from satt_bsatt_exchange_backend.settings import NETWORK_SETTINGS, SWAP_CONTRACT_ADDRESS, SWAP_CONTRACT_ABI, GAS_LIMIT
 from satt_bsatt_exchange_backend.binance_settings import BNB_CLI_PATH, BNB_TOKEN_SYMBOL
-from web3 import Web3, HTTPProvider
+from web3 import Web3, WebsocketProvider
 from subprocess import Popen, PIPE
 
-w3 = Web3(HTTPProvider(NETWORK_SETTINGS['SATT']['endpoint']))
+w3 = Web3(WebsocketProvider(NETWORK_SETTINGS['SATT']['endpoint']))
 swap_contract = w3.eth.contract(address=SWAP_CONTRACT_ADDRESS, abi=SWAP_CONTRACT_ABI)
 
 
