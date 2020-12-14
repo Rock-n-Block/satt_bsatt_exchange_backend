@@ -76,12 +76,12 @@ WSGI_APPLICATION = 'satt_bsatt_exchange_backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'django.db.backends.mysql',
         'NAME': 'satt_bsatt_exchange',
         'USER': 'satt_bsatt_exchange',
         'PASSWORD': 'satt_bsatt_exchange',
         'HOST': '127.0.0.1',
-        'PORT': '5432',
+        'PORT': '3306',
     }
 }
 
