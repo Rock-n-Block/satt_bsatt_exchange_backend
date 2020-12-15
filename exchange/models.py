@@ -6,13 +6,13 @@ import time
 class SATTtoBSATT(models.Model):
     satt_address = models.CharField(max_length=100)
     satt_transaction_hash = models.CharField(max_length=100)
-    satt_amount = models.DecimalField(max_digits=100, decimal_places=0)
+    satt_amount = models.DecimalField(max_digits=50, decimal_places=0)
     bsatt_address = models.CharField(max_length=100)
     bsatt_mint_hash = models.CharField(max_length=100)
     bsatt_mint_error = models.CharField(max_length=100)
     bsatt_send_hash = models.CharField(max_length=100)
     bsatt_send_error = models.CharField(max_length=100)
-    bsatt_amount = models.DecimalField(max_digits=100, decimal_places=0)
+    bsatt_amount = models.DecimalField(max_digits=50, decimal_places=0)
     status = models.CharField(max_length=10)
 
     class Meta:
@@ -62,11 +62,11 @@ class BSATTtoSATT(models.Model):
     bsatt_transaction_hash = models.CharField(max_length=100)
     bsatt_burn_hash = models.CharField(max_length=100)
     bsatt_burn_error = models.CharField(max_length=100)
-    bsatt_amount = models.DecimalField(max_digits=100, decimal_places=0)
+    bsatt_amount = models.DecimalField(max_digits=50, decimal_places=0)
     satt_address = models.CharField(max_length=100)
     satt_transaction_hash = models.CharField(max_length=100)
     satt_transaction_error = models.CharField(max_length=100)
-    satt_amount = models.DecimalField(max_digits=100, decimal_places=0)
+    satt_amount = models.DecimalField(max_digits=50, decimal_places=0)
     status = models.CharField(max_length=10)
 
     class Meta:

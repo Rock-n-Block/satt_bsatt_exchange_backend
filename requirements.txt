@@ -37,6 +37,7 @@ mccabe==0.6.1
 mnemonic==0.19
 multiaddr==0.0.9
 multidict==5.0.2
+mysqlclient==2.0.2
 netaddr==0.8.0
 packaging==20.4
 parsimonious==0.8.1
@@ -54,7 +55,6 @@ pycodestyle==2.6.0
 pycparser==2.20
 pycryptodome==3.9.9
 pyflakes==2.2.0
-PyMySQL==0.10.1
 pyparsing==2.4.7
 Pypubsub==4.0.3
 pyrsistent==0.17.3
