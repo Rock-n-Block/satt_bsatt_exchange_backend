@@ -61,9 +61,9 @@ class Receiver(threading.Thread):
             tx = BSATTtoSATT(
                 bsatt_address=message.get('address'),
                 bsatt_transaction_hash=bsatt_tx_hash,
-                bsatt_amount=message.get('amount'),
+                bsatt_amount=str(message.get('amount')),
                 satt_address=memo,
-                satt_amount=message.get('amount') * DECIMALS_DIFFERENCE * SATT_BSATT_RATE
+                satt_amount=str(message.get('amount') * DECIMALS_DIFFERENCE * SATT_BSATT_RATE)
             )
 
             try:
@@ -104,9 +104,9 @@ class Receiver(threading.Thread):
             tx = SATTtoBSATT(
                 satt_address=message.get('address'),
                 satt_transaction_hash=satt_tx_hash,
-                satt_amount=message.get('amount'),
+                satt_amount=str(message.get('amount')),
                 bsatt_address=bsatt_address,
-                bsatt_amount= message.get('amount') // (DECIMALS_DIFFERENCE * SATT_BSATT_RATE)
+                bsatt_amount=str(message.get('amount') // (DECIMALS_DIFFERENCE * SATT_BSATT_RATE))
             )
 
             is_mint_ok, mint_data = mint_bsatt(tx.bsatt_amount)

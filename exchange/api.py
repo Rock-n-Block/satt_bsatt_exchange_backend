@@ -14,7 +14,7 @@ def send_satt(satt_address, amount):
         'gasPrice': w3.eth.gasPrice,
         'gas': GAS_LIMIT,
     }
-    initial_tx = swap_contract.functions.exit(Web3.toChecksumAddress(satt_address), amount).buildTransaction(tx_params)
+    initial_tx = swap_contract.functions.exit(Web3.toChecksumAddress(satt_address), int(amount)).buildTransaction(tx_params)
     signed = w3.eth.account.signTransaction(initial_tx, NETWORK_SETTINGS['SATT']['private'])
     tx_hash = w3.eth.sendRawTransaction(signed.rawTransaction)
     tx_hex = tx_hash.hex()
@@ -35,7 +35,7 @@ def execute_bnbcli_command(command_list):
 
 def mint_bsatt(amount):
     command_list = [BNB_CLI_PATH, 'token', 'mint',
-                    '--amount', str(amount),
+                    '--amount', amount,
                     '--symbol', BNB_TOKEN_SYMBOL,
                     '--from', NETWORK_SETTINGS['BSATT']['key'],
                     '--chain-id', NETWORK_SETTINGS['BSATT']['chain-id'],
@@ -56,7 +56,7 @@ def send_bsatt(bsatt_address, amount):
 
 
 def burn_bsatt(amount):
-    command_list = [BNB_CLI_PATH, 'token', 'burn', '--amount', str(amount),
+    command_list = [BNB_CLI_PATH, 'token', 'burn', '--amount', amount,
                     '--symbol', BNB_TOKEN_SYMBOL,
                     '--from', NETWORK_SETTINGS['BSATT']['key'],
                     '--chain-id', NETWORK_SETTINGS['BSATT']['chain-id'],
